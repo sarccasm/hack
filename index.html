@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Get User IP</title>
+</head>
+<body>
+    <h1>Отримання IP-адреси користувача</h1>
+    <p id="ip"></p>
+
+    <script>
+        // Використання API для отримання IP-адреси
+        fetch('https://api.ipify.org?format=json')
+            .then(response => response.json())
+            .then(data => {
+                // Виведення IP-адреси на сторінку
+                document.getElementById("ip").textContent = `Ваш IP: ${data.ip}`;
+                console.log(`IP користувача: ${data.ip}`);
+
+                // Надсилаємо IP на сервер
+                fetch('/save-ip', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ ip: data.ip }) // Передаємо IP як JSON
+                })
+                .then(res => res.json())
+                .then(result => console.log('IP збережено на сервері:', result))
+                .catch(error => console.error('Помилка при збереженні IP:', error));
+            })
+            .catch(error => console.error('Помилка при отриманні IP:', error));
+    </script>
+</body>
+</html>
