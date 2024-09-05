@@ -1,5 +1,6 @@
 const express = require("express");
-const db = require("./database.js");
+const fs = require("fs");
+const path = require("path");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -13,30 +14,33 @@ app.use(express.static(__dirname));
 app.post("/save-ip", (req, res) => {
   const { ip } = req.body;
 
+  // Логування тіла запиту
+  console.log(`Отримане тіло запиту: ${JSON.stringify(req.body)}`);
+
   if (!ip) {
     console.error("IP не отримано");
     return res.status(400).json({ message: "IP не отримано" });
   }
 
-  // Збереження IP у базу даних
-  db.run("INSERT INTO ips (ip) VALUES (?)", [ip], function (err) {
-    if (err) {
-      console.error("Помилка при збереженні IP:", err);
-      return res.status(500).json({ message: "Помилка при збереженні IP" });
-    }
-    console.log(`IP ${ip} успішно збережено в базу даних.`);
-    res.json({ message: "IP збережено" });
-  });
-});
+  // Абсолютний шлях до файла ips.txt
+  const filePath = path.join(__dirname, "ips.txt");
 
-// Додаємо маршрут для отримання всіх IP з бази даних
-app.get("/ips", (req, res) => {
-  db.all("SELECT * FROM ips", [], (err, rows) => {
+  // Перевірка, чи існує файл і чи можна до нього записати
+  fs.access(filePath, fs.constants.W_OK | fs.constants.R_OK, (err) => {
     if (err) {
-      console.error("Помилка при отриманні IP з бази даних:", err);
-      return res.status(500).json({ message: "Помилка при отриманні IP" });
+      console.error("Немає доступу до файла:", err);
+      return res.status(500).json({ message: "Немає доступу до файла" });
     }
-    res.json(rows); // Відправляємо всі IP у відповідь
+
+    // Запис IP у файл
+    fs.appendFile(filePath, `IP: ${ip}\n`, "utf8", (err) => {
+      if (err) {
+        console.error("Помилка при записі IP:", err);
+        return res.status(500).json({ message: "Помилка при збереженні IP" });
+      }
+      console.log(`IP ${ip} успішно збережено.`);
+      res.json({ message: "IP збережено" });
+    });
   });
 });
 
