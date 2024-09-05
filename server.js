@@ -13,8 +13,8 @@ app.use(express.static(__dirname));
 app.post("/save-ip", (req, res) => {
   const { ip } = req.body;
 
-  // Логування отриманого IP
-  console.log(`Отримано IP: ${ip}`);
+  // Додай цей лог для перевірки
+  console.log(`Отримане тіло запиту: ${JSON.stringify(req.body)}`);
 
   // Логування та збереження IP у файл
   fs.appendFileSync("ips.txt", `IP: ${ip}\n`, "utf8");

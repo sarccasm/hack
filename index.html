@@ -4,28 +4,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Отримання IP-адреси користувача</title>
+    <link rel="icon" href="data:,"> 
 </head>
 <body>
     <h1>Отримання IP-адреси користувача</h1>
     <p id="ip">Отримуємо вашу IP-адресу...</p>
 
     <script>
-        // Використання API для отримання IP-адреси
         fetch('https://api.ipify.org?format=json')
             .then(response => response.json())
             .then(data => {
-                // Виведення IP-адреси на сторінку
                 const userIp = data.ip;
                 document.getElementById("ip").textContent = `Ваш IP: ${userIp}`;
                 console.log(`IP користувача: ${userIp}`);
 
-                // Надсилаємо IP на сервер
                 fetch('/save-ip', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ ip: userIp }) // Передаємо IP як JSON
+                    body: JSON.stringify({ ip: userIp })
                 })
                 .then(res => res.json())
                 .then(result => {
