@@ -1,30 +1,42 @@
 const express = require("express");
-const db = require("./database");
+const db = require("./database.js");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middleware для розбору JSON
 app.use(express.json());
 
-// Налаштування для обслуговування статичних файлів
+// Налаштування для обслуговування статичних файлів з поточної директорії
 app.use(express.static(__dirname));
 
-// Маршрут для збереження IP-адреси у базу даних
+// Маршрут для отримання IP-адреси і її збереження
 app.post("/save-ip", (req, res) => {
   const { ip } = req.body;
 
-  console.log(`Отримане тіло запиту: ${JSON.stringify(req.body)}`);
+  if (!ip) {
+    console.error("IP не отримано");
+    return res.status(400).json({ message: "IP не отримано" });
+  }
 
-  // Додаємо IP до бази даних
-  const query = `INSERT INTO ips (ip) VALUES (?)`;
-  db.run(query, [ip], function (err) {
+  // Збереження IP у базу даних
+  db.run("INSERT INTO ips (ip) VALUES (?)", [ip], function (err) {
     if (err) {
-      console.error(err.message);
-      return res.status(500).json({ error: "Не вдалося зберегти IP" });
+      console.error("Помилка при збереженні IP:", err);
+      return res.status(500).json({ message: "Помилка при збереженні IP" });
     }
+    console.log(`IP ${ip} успішно збережено в базу даних.`);
+    res.json({ message: "IP збережено" });
+  });
+});
 
-    // Успішне збереження
-    res.json({ message: "IP збережено", id: this.lastID });
+// Додаємо маршрут для отримання всіх IP з бази даних
+app.get("/ips", (req, res) => {
+  db.all("SELECT * FROM ips", [], (err, rows) => {
+    if (err) {
+      console.error("Помилка при отриманні IP з бази даних:", err);
+      return res.status(500).json({ message: "Помилка при отриманні IP" });
+    }
+    res.json(rows); // Відправляємо всі IP у відповідь
   });
 });
 

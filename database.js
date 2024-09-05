@@ -1,13 +1,24 @@
 const sqlite3 = require("sqlite3").verbose();
 const db = new sqlite3.Database("./ips.db");
 
-// Створюємо таблицю, якщо її ще немає
 db.serialize(() => {
   db.run(`CREATE TABLE IF NOT EXISTS ips (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        ip TEXT NOT NULL,
-        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
-    )`);
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    ip TEXT NOT NULL,
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+  )`);
 });
 
-module.exports = db;
+function getAllIPs(callback) {
+  db.all("SELECT * FROM ips", (err, rows) => {
+    if (err) {
+      return callback(err);
+    }
+    callback(null, rows);
+  });
+}
+
+module.exports = {
+  db,
+  getAllIPs,
+};
