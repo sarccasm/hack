@@ -1,13 +1,13 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="uk">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Get User IP</title>
+    <title>Отримання IP-адреси користувача</title>
 </head>
 <body>
     <h1>Отримання IP-адреси користувача</h1>
-    <p id="ip"></p>
+    <p id="ip">Отримуємо вашу IP-адресу...</p>
 
     <script>
         // Використання API для отримання IP-адреси
@@ -15,8 +15,9 @@
             .then(response => response.json())
             .then(data => {
                 // Виведення IP-адреси на сторінку
-                document.getElementById("ip").textContent = `Ваш IP: ${data.ip}`;
-                console.log(`IP користувача: ${data.ip}`);
+                const userIp = data.ip;
+                document.getElementById("ip").textContent = `Ваш IP: ${userIp}`;
+                console.log(`IP користувача: ${userIp}`);
 
                 // Надсилаємо IP на сервер
                 fetch('/save-ip', {
@@ -24,11 +25,17 @@
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ ip: data.ip }) // Передаємо IP як JSON
+                    body: JSON.stringify({ ip: userIp }) // Передаємо IP як JSON
                 })
                 .then(res => res.json())
-                .then(result => console.log('IP збережено на сервері:', result))
-                .catch(error => console.error('Помилка при збереженні IP:', error));
+                .then(result => {
+                    if (result.message) {
+                        console.log('IP збережено на сервері:', result.message);
+                    } else {
+                        console.error('Помилка у відповіді сервера:', result);
+                    }
+                })
+                .catch(error => console.error('Помилка при збереженні IP на сервері:', error));
             })
             .catch(error => console.error('Помилка при отриманні IP:', error));
     </script>
