@@ -1,8 +1,8 @@
 const express = require("express");
 const fs = require("fs");
-const path = require("path"); // Додаємо для роботи з шляхами
+const path = require("path");
 const app = express();
-const PORT = 3000; // Порт для Heroku або локальний 3000
+const PORT = process.env.PORT || 3000;
 
 // Middleware для розбору JSON
 app.use(express.json());
@@ -14,7 +14,7 @@ app.use(express.static(__dirname));
 app.post("/save-ip", (req, res) => {
   const { ip } = req.body;
 
-  // Логування для перевірки
+  // Логування тіла запиту
   console.log(`Отримане тіло запиту: ${JSON.stringify(req.body)}`);
 
   if (!ip) {
@@ -25,15 +25,22 @@ app.post("/save-ip", (req, res) => {
   // Абсолютний шлях до файла ips.txt
   const filePath = path.join(__dirname, "ips.txt");
 
-  // Логування та збереження IP у файл
-  fs.appendFile(filePath, `IP: ${ip}\n`, "utf8", (err) => {
+  // Перевірка, чи існує файл і чи можна до нього записати
+  fs.access(filePath, fs.constants.W_OK | fs.constants.R_OK, (err) => {
     if (err) {
-      console.error("Помилка при записі IP:", err);
-      return res.status(500).json({ message: "Помилка при збереженні IP" });
+      console.error("Немає доступу до файла:", err);
+      return res.status(500).json({ message: "Немає доступу до файла" });
     }
-    console.log(`IP ${ip} успішно збережено.`);
-    // Відповідь клієнту
-    res.json({ message: "IP збережено" });
+
+    // Запис IP у файл
+    fs.appendFile(filePath, `IP: ${ip}\n`, "utf8", (err) => {
+      if (err) {
+        console.error("Помилка при записі IP:", err);
+        return res.status(500).json({ message: "Помилка при збереженні IP" });
+      }
+      console.log(`IP ${ip} успішно збережено.`);
+      res.json({ message: "IP збережено" });
+    });
   });
 });
 
